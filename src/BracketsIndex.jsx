@@ -5,7 +5,7 @@ export function BracketsIndex(props) {
       {props.brackets.map((bracket) => (
         <div key={bracket.id}>
           <h2>{bracket.name}</h2>
-          <p>{bracket.user}</p>
+          <p>{bracket.user_id}</p>
           <p>{bracket.total_points}</p>
         </div>
       ))}

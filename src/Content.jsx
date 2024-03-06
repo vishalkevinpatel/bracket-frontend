@@ -1,12 +1,20 @@
+import axios from "axios";
+import { useState, useEffect } from "react";
 import { BracketsIndex } from "./BracketsIndex";
 
-const brackets = [
-  { id: 1, name: "Perfect Bracket", user: "perfect", total_points: 0 },
-  { id: 2, name: "Alex's Bracket", user: "alex", total_points: 0 },
-  { id: 3, name: "Emily's Bracket", user: "emily", total_points: 0 },
-];
-
 export function Content() {
+  const [brackets, setBrackets] = useState([]);
+
+  const handleIndexBrackets = () => {
+    console.log("handleIndexBrackets");
+    axios.get("http://localhost:3000/brackets.json").then((response) => {
+      console.log(response.data);
+      setBrackets(response.data);
+    });
+  };
+
+  useEffect(handleIndexBrackets, []);
+
   return (
     <div>
       <BracketsIndex brackets={brackets} />
