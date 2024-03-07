@@ -5,6 +5,7 @@ import { BracketsShow } from "./BracketsShow";
 
 export function Content() {
   const [brackets, setBrackets] = useState([]);
+  const [matches, setMatches] = useState([]);
 
   const handleIndexBrackets = () => {
     console.log("handleIndexBrackets");
@@ -14,32 +15,24 @@ export function Content() {
     });
   };
 
-  // const matches = [
-  //   { id: 1, pick_team_id: "Alabama" },
-  //   { id: 2, pick_team_id: "Arkansas" },
-  //   { id: 3, pick_team_id: "UCLA" },
-  //   { id: 4, pick_team_id: "UNC" },
-  //   { id: 5, pick_team_id: "KSU" },
-  // ];
-
-  const [matches, setMatches] = useState([]);
-
   // to go inside BracketShow.jsx
-  const handleMatchesIndex = () => {
+  const handleMatchesIndex = (bracketId) => {
     console.log("handleMatchesIndex");
-    axios.get("http://localhost:3000/matches.json").then((response) => {
+    axios.get(`http://localhost:3000/filter_by_bracket/${bracketId}.json`).then((response) => {
       console.log(response.data);
       setMatches(response.data);
     });
   };
 
-  useEffect(handleIndexBrackets, []);
+  const handleShowBracket = (bracketId) => {
+    handleMatchesIndex(bracketId);
+  };
 
-  useEffect(handleMatchesIndex, []);
+  useEffect(handleIndexBrackets, []);
 
   return (
     <div>
-      <BracketsIndex brackets={brackets} />
+      <BracketsIndex brackets={brackets} onShowBracket={handleShowBracket} />
       <BracketsShow matches={matches} />
     </div>
   );
