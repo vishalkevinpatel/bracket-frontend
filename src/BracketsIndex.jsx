@@ -7,6 +7,7 @@ export function BracketsIndex(props) {
           <h2>{bracket.name}</h2>
           <p>{bracket.user_id}</p>
           <p>{bracket.total_points}</p>
+          <button onClick={() => props.onShowBracket(bracket.id)}>See bracket</button>
         </div>
       ))}
     </div>

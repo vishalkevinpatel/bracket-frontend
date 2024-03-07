@@ -1,9 +1,11 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { BracketsIndex } from "./BracketsIndex";
+import { BracketsShow } from "./BracketsShow";
 
 export function Content() {
   const [brackets, setBrackets] = useState([]);
+  const [matches, setMatches] = useState([]);
 
   const handleIndexBrackets = () => {
     console.log("handleIndexBrackets");
@@ -13,11 +15,25 @@ export function Content() {
     });
   };
 
+  // to go inside BracketShow.jsx
+  const handleMatchesIndex = (bracketId) => {
+    console.log("handleMatchesIndex");
+    axios.get(`http://localhost:3000/filter_by_bracket/${bracketId}.json`).then((response) => {
+      console.log(response.data);
+      setMatches(response.data);
+    });
+  };
+
+  const handleShowBracket = (bracketId) => {
+    handleMatchesIndex(bracketId);
+  };
+
   useEffect(handleIndexBrackets, []);
 
   return (
     <div>
-      <BracketsIndex brackets={brackets} />
+      <BracketsIndex brackets={brackets} onShowBracket={handleShowBracket} />
+      <BracketsShow matches={matches} />
     </div>
   );
 }
