@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
+import { Signup } from "./Signup";
 import { BracketsIndex } from "./BracketsIndex";
 import { BracketsShow } from "./BracketsShow";
 
@@ -32,6 +33,7 @@ export function Content() {
 
   return (
     <div>
+      <Signup />
       <BracketsIndex brackets={brackets} onShowBracket={handleShowBracket} />
       <BracketsShow matches={matches} />
     </div>
