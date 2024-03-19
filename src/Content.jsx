@@ -1,7 +1,10 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
+import { Signup } from "./Signup";
+import { Login } from "./Login";
 import { BracketsIndex } from "./BracketsIndex";
 import { BracketsShow } from "./BracketsShow";
+import { BracketsNew } from "./BracketsNew";
 
 export function Content() {
   const [brackets, setBrackets] = useState([]);
@@ -32,8 +35,21 @@ export function Content() {
     setShowBracket(true);
   };
 
+  const handleCreateBracket = (params, successCallback) => {
+    console.log("handleCreateBracket", params);
+    axios.post("http://localhost:3000/brackets.json", params).then((response) => {
+      setBrackets([...brackets, response.data]);
+      successCallback();
+    });
+  };
+
+  useEffect(handleIndexBrackets, []);
+
   return (
     <div>
+      <Login />
+      <Signup />
+      <BracketsNew onCreateBracket={handleCreateBracket} />
       <BracketsIndex brackets={brackets} onShowBracket={handleShowBracket} />
       {showBracket && <BracketsShow matches={matches} />}
     </div>
