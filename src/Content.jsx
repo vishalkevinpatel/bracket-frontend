@@ -24,16 +24,18 @@ export function Content() {
     });
   };
 
+  useEffect(handleIndexBrackets, []);
+  const [showBracket, setShowBracket] = useState(false);
+
   const handleShowBracket = (bracketId) => {
     handleMatchesIndex(bracketId);
+    setShowBracket(true);
   };
-
-  useEffect(handleIndexBrackets, []);
 
   return (
     <div>
       <BracketsIndex brackets={brackets} onShowBracket={handleShowBracket} />
-      <BracketsShow matches={matches} />
+      {showBracket && <BracketsShow matches={matches} />}
     </div>
   );
 }
