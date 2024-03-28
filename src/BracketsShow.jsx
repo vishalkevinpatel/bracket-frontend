@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
+// eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from "react";
 
-const LargeScreenComponent = ({ matches }) => {
+const LargeScreenComponent = ({ matches, games, brackets }) => {
   // processedBracket defined here if it's only relevant to LargeScreenComponent
   const processedBracket = [
     [1, null, null, null, null, null, null, null, null, null, 17],
@@ -22,25 +23,53 @@ const LargeScreenComponent = ({ matches }) => {
     [16, 40, null, null, null, null, null, null, null, 48, 32],
   ];
 
+  //array to build the interior rounds of the bracket
+  const gameDependencies = {
+    33: [1, 2],
+    34: [3, 4],
+    35: [5, 6],
+    36: [7, 8],
+    37: [9, 10],
+    38: [11, 12],
+    39: [13, 14],
+    40: [15, 16],
+    41: [17, 18],
+    42: [19, 20],
+    43: [21, 22],
+    44: [23, 24],
+    45: [25, 26],
+    46: [27, 28],
+    47: [29, 30],
+    48: [31, 32],
+    49: [33, 34],
+    50: [35, 36],
+    51: [37, 38],
+    52: [39, 40],
+    53: [41, 42],
+    54: [43, 44],
+    55: [45, 46],
+    56: [47, 48],
+    57: [49, 50],
+    58: [51, 52],
+    59: [53, 54],
+    60: [55, 56],
+    61: [57, 58],
+    62: [59, 60],
+    63: [61, 62],
+  };
+
   //matches game_id int from dummy table and connects to match.game_id object
   const getMatchByGameId = (gameId) => {
     return matches.find((match) => match.game_matrix === gameId);
   };
-
-  //basic styling around each table data box, totally temporary
-  // const tdStyle = {
-  //   border: "1px solid black",
-  //   padding: "10px",
-  //   textAlign: "center",
-  // };
 
   //basic styling for underlining the winner
   const winnerStyle = {
     textDecoration: "underline",
     margin: "0",
     backgroundColor: "lightgrey",
-    width: "80px",
-    height: "20px",
+    width: "100px",
+    height: "25px",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
@@ -50,101 +79,92 @@ const LargeScreenComponent = ({ matches }) => {
   const notWinnerStyle = {
     margin: "0",
     backgroundColor: "lightgrey",
-    width: "80px",
-    height: "20px",
+    width: "100px",
+    height: "25px",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
     border: "1px solid grey",
+    justifyContent: "center",
   };
 
-  // const tdRef = useRef();
-  // const [transformStyle, setTransformStyle] = useState({});
+  const empty = {
+    margin: "0",
+    width: "100px",
+    height: "25px",
+  };
 
-  // useEffect(() => {
-  //   if (tdRef) {
-  //     setTransformStyle({
-  //       transform: `translateY(-${tdRef.current.clientHeight / 2}px)`,
-  //  </div>   });
-  //   }
-  // }, []);
+  const normal = {
+    margin: "0",
+    paddingTop: "10px",
+    paddingBottom: "10px",
+    textAlign: "center",
+  };
 
-  // const tdstyle2 = {
-  //   border: "1px solid black",
-  //   textAlign: "center",
-  //   transform: `translateY(-${tdRef.current.clientHeight / 2}px)`,
-  // };
-
+  //have to apply the transform style after the component mounts
+  //basically can't shift the matchups up until after the matches are loaded
   const [isMounted, setIsMounted] = useState(false);
 
+  // Set the mounted state to true after component mounts
   useEffect(() => {
-    setIsMounted(true); // Set the mounted state to true after component mounts
+    setIsMounted(true);
   }, []);
 
   // move the games up by half of the height of the td element to create bracket shape
   const dynamicTdStyle = isMounted ? { transform: "translateY(-50%)" } : {};
 
+  const bracketName = matches && matches.length > 0 ? matches[0].bracket_name : "Default Bracket Name";
+
+  /////code to calculate the scores table
+  const bracketId = matches && matches.length > 0 ? matches[0].bracket_id : null;
+  const currentBracket = brackets.find((bracket) => bracket.id === bracketId);
+
   return (
     <div>
-      <h1>Bracket Information</h1>
-      <h3>Bracket Key:</h3>
-      <h4>Bold is your pick</h4>
-      <h4>Underline is the winner</h4>
+      <h1>Bracket Name: {bracketName} </h1>
+      <h2>The Winner of the game is Underlined</h2>
       <table>
         <tbody>
-          {/* iterates over each row */}
           {processedBracket.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              {/* iterates over each thing in row */}
               {row.map((gameId, colIndex) => {
-                // Skip rendering the td element when colIndex is 4
-                // if (colIndex > 2 && rowIndex > 3) {
-                //   return null;
-                // }
+                if (!gameId) return <td key={`${rowIndex}-${colIndex}`} style={empty}></td>;
+
+                // Fetching the detailed info for the current game/match
+                const match = getMatchByGameId(gameId);
+                const gameInfo = games.find((game) => game.matrix === gameId);
+
+                let homeTeamName = "TBD";
+                let awayTeamName = "TBD";
+                let homeTeamStyle = notWinnerStyle;
+                let awayTeamStyle = notWinnerStyle;
+
+                if (match && gameInfo) {
+                  // Use match and gameInfo to determine team names and styles
+                  if (gameId > 32 && gameDependencies[gameId]) {
+                    const [homeDepGameId, awayDepGameId] = gameDependencies[gameId];
+                    const homeMatch = matches.find((match) => match.game_matrix === homeDepGameId);
+                    const awayMatch = matches.find((match) => match.game_matrix === awayDepGameId);
+                    homeTeamName = homeMatch ? homeMatch.pick_team_name : "TBD";
+                    awayTeamName = awayMatch ? awayMatch.pick_team_name : "TBD";
+                  } else {
+                    homeTeamName = match.home_team;
+                    awayTeamName = match.away_team;
+                  }
+
+                  homeTeamStyle = homeTeamName === gameInfo.winner_team_name ? winnerStyle : notWinnerStyle;
+                  awayTeamStyle = awayTeamName === gameInfo.winner_team_name ? winnerStyle : notWinnerStyle;
+                }
+
                 return (
-                  // creates the box for each data value
                   <td
                     key={`${rowIndex}-${colIndex}`}
-                    style={{
-                      ...(gameId > 32 ? { ...dynamicTdStyle } : {}),
-                      paddingTop: "10px",
-                      paddingBottom: "10px",
-                      textAlign: "center",
-                    }}
+                    style={{ ...normal, ...(gameId > 32 ? { ...dynamicTdStyle } : {}) }}
                   >
-                    {/* if gameid exists and can be connected to object properly */}
-                    {gameId && getMatchByGameId(gameId) && (
-                      <div>
-                        <p
-                          style={
-                            getMatchByGameId(gameId).winner_team_id === getMatchByGameId(gameId).home_team
-                              ? winnerStyle
-                              : notWinnerStyle
-                          }
-                        >
-                          {/* Home:&nbsp; */}
-                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_id ? (
-                            <strong>{getMatchByGameId(gameId).home_team}</strong>
-                          ) : (
-                            getMatchByGameId(gameId).home_team
-                          )}
-                        </p>{" "}
-                        <p
-                          style={
-                            getMatchByGameId(gameId).winner_team_id === getMatchByGameId(gameId).away_team
-                              ? winnerStyle
-                              : notWinnerStyle
-                          }
-                        >
-                          {/* Away:&nbsp; */}
-                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_id ? (
-                            <strong>{getMatchByGameId(gameId).away_team}</strong>
-                          ) : (
-                            getMatchByGameId(gameId).away_team
-                          )}
-                        </p>
-                      </div>
-                    )}
+                    <div>
+                      <p style={homeTeamStyle}>{homeTeamName}</p>
+                      <p style={awayTeamStyle}>{awayTeamName}</p>
+                    </div>
                   </td>
                 );
               })}
@@ -152,6 +172,30 @@ const LargeScreenComponent = ({ matches }) => {
           ))}
         </tbody>
       </table>
+      {/* Scores Table */}
+      <div style={{ marginTop: "20px" }}>
+        <h2>Scores</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Round</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[1, 2, 3, 4, 5, 6].map((round) => (
+              <tr key={round}>
+                <td>Round {round}</td>
+                <td>{currentBracket ? currentBracket[`round${round}`] : 0}</td>
+              </tr>
+            ))}
+            <tr>
+              <th>Total</th>
+              <th>{currentBracket ? currentBracket.total_points : 0}</th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
@@ -312,7 +356,7 @@ const SmallScreenComponent = ({ matches }) => {
                           }
                         >
                           {/* Home:&nbsp; */}
-                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_id ? (
+                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_name ? (
                             <strong>{getMatchByGameId(gameId).home_team}</strong>
                           ) : (
                             getMatchByGameId(gameId).home_team
@@ -326,7 +370,7 @@ const SmallScreenComponent = ({ matches }) => {
                           }
                         >
                           {/* Away:&nbsp; */}
-                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_id ? (
+                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_name ? (
                             <strong>{getMatchByGameId(gameId).away_team}</strong>
                           ) : (
                             getMatchByGameId(gameId).away_team
@@ -375,7 +419,7 @@ const SmallScreenComponent = ({ matches }) => {
                           }
                         >
                           {/* Home:&nbsp; */}
-                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_id ? (
+                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_name ? (
                             <strong>{getMatchByGameId(gameId).home_team}</strong>
                           ) : (
                             getMatchByGameId(gameId).home_team
@@ -389,7 +433,7 @@ const SmallScreenComponent = ({ matches }) => {
                           }
                         >
                           {/* Away:&nbsp; */}
-                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_id ? (
+                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_name ? (
                             <strong>{getMatchByGameId(gameId).away_team}</strong>
                           ) : (
                             getMatchByGameId(gameId).away_team
@@ -438,7 +482,7 @@ const SmallScreenComponent = ({ matches }) => {
                           }
                         >
                           {/* Home:&nbsp; */}
-                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_id ? (
+                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_name ? (
                             <strong>{getMatchByGameId(gameId).home_team}</strong>
                           ) : (
                             getMatchByGameId(gameId).home_team
@@ -452,7 +496,7 @@ const SmallScreenComponent = ({ matches }) => {
                           }
                         >
                           {/* Away:&nbsp; */}
-                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_id ? (
+                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_name ? (
                             <strong>{getMatchByGameId(gameId).away_team}</strong>
                           ) : (
                             getMatchByGameId(gameId).away_team
@@ -501,7 +545,7 @@ const SmallScreenComponent = ({ matches }) => {
                           }
                         >
                           {/* Home:&nbsp; */}
-                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_id ? (
+                          {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_name ? (
                             <strong>{getMatchByGameId(gameId).home_team}</strong>
                           ) : (
                             getMatchByGameId(gameId).home_team
@@ -515,7 +559,7 @@ const SmallScreenComponent = ({ matches }) => {
                           }
                         >
                           {/* Away:&nbsp; */}
-                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_id ? (
+                          {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_name ? (
                             <strong>{getMatchByGameId(gameId).away_team}</strong>
                           ) : (
                             getMatchByGameId(gameId).away_team
@@ -565,7 +609,7 @@ const SmallScreenComponent = ({ matches }) => {
                             }
                           >
                             {/* Home:&nbsp; */}
-                            {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_id ? (
+                            {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_name ? (
                               <strong>{getMatchByGameId(gameId).home_team}</strong>
                             ) : (
                               getMatchByGameId(gameId).home_team
@@ -579,7 +623,7 @@ const SmallScreenComponent = ({ matches }) => {
                             }
                           >
                             {/* Away:&nbsp; */}
-                            {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_id ? (
+                            {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_name ? (
                               <strong>{getMatchByGameId(gameId).away_team}</strong>
                             ) : (
                               getMatchByGameId(gameId).away_team
@@ -630,7 +674,7 @@ const SmallScreenComponent = ({ matches }) => {
                             }
                           >
                             {/* Home:&nbsp; */}
-                            {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_id ? (
+                            {getMatchByGameId(gameId).home_team === getMatchByGameId(gameId).pick_team_name ? (
                               <strong>{getMatchByGameId(gameId).home_team}</strong>
                             ) : (
                               getMatchByGameId(gameId).home_team
@@ -644,7 +688,7 @@ const SmallScreenComponent = ({ matches }) => {
                             }
                           >
                             {/* Away:&nbsp; */}
-                            {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_id ? (
+                            {getMatchByGameId(gameId).away_team === getMatchByGameId(gameId).pick_team_name ? (
                               <strong>{getMatchByGameId(gameId).away_team}</strong>
                             ) : (
                               getMatchByGameId(gameId).away_team
@@ -677,8 +721,10 @@ export function BracketsShow(props) {
   }, []);
 
   return isSmallScreen ? (
-    <SmallScreenComponent matches={props.matches} />
+    <SmallScreenComponent matches={props.matches} games={props.games} teams={props.teams} />
   ) : (
-    <LargeScreenComponent matches={props.matches} />
+    <>
+      <LargeScreenComponent matches={props.matches} games={props.games} teams={props.teams} brackets={props.brackets} />
+    </>
   );
 }
